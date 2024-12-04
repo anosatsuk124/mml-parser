@@ -1,0 +1,75 @@
+WHITESPACE = _{ (" " | "\t" | "\n" | "\r" | ";")+ }
+
+digit  =  { '0'..'9' }
+number = @{ "-"? ~ digit+ }
+
+abc_note_letter  = _{ "c" | "d" | "e" | "f" | "g" | "a" | "b" }
+abc_note         =  { abc_note_letter ~ number? ~ parameters* }
+midi_note_prefix = _{ "n" }
+midi_note        =  { midi_note_prefix ~ number ~ parameters* }
+note             = _{ abc_note | midi_note }
+
+rest                = { "r" }
+length              = { "l" ~ number ~ parameters* }
+octave              = { "o" ~ number ~ parameters* }
+pitch_bend          = { "p" ~ number ~ parameters* }
+gate                = { "q" ~ number ~ parameters* }
+velocity            = { "v" ~ number ~ parameters* }
+timing              = { "t" ~ number ~ parameters* }
+control_change      = { "y" ~ number ~ parameters* }
+macro_def           = { "#" ~ (!WHITESPACE ~ ANY)* }
+voice_select        = { "@" ~ number ~ ("," ~ number ~ ("," ~ number)?)? }
+octave_up           = { ">" }
+octave_down         = { "<" }
+velocity_up         = { ")" ~ number? }
+velocity_down       = { "(" ~ number? }
+range_comment       = { "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+line_comment_debug  = { "///" ~ (!"\n" ~ ANY)* }
+line_comment        = { ("//" | "##" | "# " | "#-") ~ (!"\n" ~ ANY)* }
+loop_begin          = { "[" ~ number? }
+loop_break          = { ":" }
+loop_end            = { "]" }
+harmony             = { "'" ~ (note)+ ~ "'" ~ ("," ~ number)? ~ ("," ~ number)? }
+rhythm_macro_define = { "$" ~ ASCII_ALPHANUMERIC ~ "{" ~ (!"}" ~ ANY)* ~ "}" }
+group_notes         = { "{" ~ (note | rest | tie_slur)+ ~ "}" ~ number? }
+octave_up_once      = { "`" }
+octave_down_once    = { "\"" }
+play_from_here      = { "?" }
+tie_slur            = { "&" }
+
+command = _{
+    note
+  | rest
+  | length
+  | octave
+  | pitch_bend
+  | gate
+  | velocity
+  | timing
+  | control_change
+  | macro_def
+  | voice_select
+  | octave_up
+  | octave_down
+  | velocity_up
+  | velocity_down
+  | range_comment
+  | line_comment_debug
+  | line_comment
+  | loop_begin
+  | loop_break
+  | loop_end
+  | harmony
+  | rhythm_macro_define
+  | group_notes
+  | octave_up_once
+  | octave_down_once
+  | play_from_here
+  | tie_slur
+}
+
+parameters = {
+    ("," ~ number?)
+}
+
+mml = { (WHITESPACE* ~ command ~ WHITESPACE*)* }
